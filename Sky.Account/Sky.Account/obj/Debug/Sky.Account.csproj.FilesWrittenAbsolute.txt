@@ -1,0 +1,6 @@
+/Users/mac/Projects/Sky.Account/Sky.Account/obj/Debug/.NETFramework,Version=v4.0.AssemblyAttribute.cs
+/Users/mac/Projects/Sky.Account/Sky.Account/bin/Sky.Account.dll.mdb
+/Users/mac/Projects/Sky.Account/Sky.Account/bin/Sky.Account.dll
+/Users/mac/Projects/Sky.Account/Sky.Account/obj/Debug/Sky.Account.dll
+/Users/mac/Projects/Sky.Account/Sky.Account/obj/Debug/Sky.Account.dll.mdb
+/Users/mac/Projects/Sky.Account/Sky.Account/bin/Mono.Data.Sqlite.dll
