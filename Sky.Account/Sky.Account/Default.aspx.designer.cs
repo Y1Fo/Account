@@ -26,9 +26,5 @@ namespace Sky.Account {
 		protected System.Web.UI.WebControls.Button btnRegister;
 		
 		protected System.Web.UI.WebControls.Button btnList;
-		
-		protected System.Web.UI.WebControls.Button btnAddCoin;
-		
-		protected System.Web.UI.WebControls.Button btnReduceCoin;
 	}
 }

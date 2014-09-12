@@ -37,7 +37,7 @@ namespace Sky.Account
 //				             "([UserID] INTEGER PRIMARY KEY, " +
 //				             "[UserName] VARCHAR(20) NOT NULL, " +
 //				             "[Password] VARCHAR(255) NOT NULL, " +
-//				             "[Coin] VARCHAR(20) NOT NULL DEFAULT '0', " +
+//				             "[Coin] INTEGER NOT NULL DEFAULT 0, " +
 //				             "[CreatedTime] TimeStamp NOT NULL DEFAULT (datetime('now','localtime')), " +
 //				             "[LoginTime] TimeStamp NOT NULL DEFAULT (datetime('now','localtime')))";
 //				int success = SqliteHelper.ExecuteNoQuery (conn, sql);
@@ -55,27 +55,29 @@ namespace Sky.Account
 		/// <param name="pwd">Pwd.</param>
 		public static bool Register(string userName, string pwd)
 		{
+			bool success = false;
 			//检查sql语句是否合法，防止sql注入
-			if (StringHelper.CheckSqlString (userName) || StringHelper.CheckSqlString (pwd))
-				return false;
+			if (StringHelper.CheckSqlString (userName) || StringHelper.CheckSqlString (pwd)) {
+				success = false;
+			} else {
+				using(SqlConnection conn = SqlClientHelper.CreateConn ()) {
 
-			SqlConnection conn = SqlClientHelper.CurrentConn ();
-			if (conn.State == System.Data.ConnectionState.Open)
-			{
-				string sql = "SELECT [UserName] FROM [User] WHERE [UserName] = '" + userName + "'";
-				ArrayList list = SqlClientHelper.ExecuteReader (conn, sql);
+					SqlClientHelper.Open (conn);
+					string sql = "SELECT [UserName] FROM [User] WHERE [UserName] = '" + userName + "'";
+					ArrayList list = SqlClientHelper.ExecuteReader (conn, sql);
 
-				//若存在帐号
-				if (list != null) {
-					return false;
-				} else {
-					sql = "INSERT INTO [User] ([Username], [Password], [Coin]) VALUES ('" + userName + "', '" + pwd + "', '0')";
-					int success = SqlClientHelper.ExecuteNoQuery (conn, sql);
-					return (success == -1) ? false : true;
+					//若存在帐号
+					if (list != null) {
+						success = false;
+					} else {
+						sql = "INSERT INTO [User] ([Username], [Password], [Coin]) VALUES ('" + userName + "', '" + pwd + "', 0)";
+						int exe = SqlClientHelper.ExecuteNoQuery (conn, sql);
+						success = (exe == -1) ? false : true;
+					}
 				}
 			}
 
-			return false;
+			return success;
 		}
 
 		/// <summary>
@@ -85,30 +87,34 @@ namespace Sky.Account
 		/// <param name="pwd">Pwd.</param>
 		public static bool Login(string userName, string pwd)
 		{
+			bool success = false;
 			//检查sql语句是否合法，防止sql注入
-			if (StringHelper.CheckSqlString (userName) || StringHelper.CheckSqlString (pwd))
-				return false;
-
-			SqlConnection conn = SqlClientHelper.CurrentConn ();
-			ArrayList list = SqlClientHelper.ExecuteReader (conn, "SELECT [UserName], [Password] FROM User WHERE [UserName] = '" + userName + "'");
-
-			if (list == null || list.Count != 1) {
-				return false;
+			if (StringHelper.CheckSqlString (userName) || StringHelper.CheckSqlString (pwd)) {
+				success = false;
 			} else {
+				SqlConnection conn = SqlClientHelper.CurrentConn ();
+				string sql = "SELECT [UserName], [Password] FROM User WHERE [UserName] = '" + userName + "'";
+				ArrayList list = SqlClientHelper.ExecuteReader (conn, sql);
 
-				Dictionary<string, string> dic = (Dictionary<string, string>)list [0];
-				string sqlName = "";
-				string sqlPwd = "";
-				dic.TryGetValue ("0", out sqlName);
-				dic.TryGetValue ("1", out sqlPwd);
-				if (!sqlName.Equals (userName) || !sqlPwd.Equals (pwd)) {
-					return false;
+				if (list == null || list.Count != 1) {
+					success = false;
 				} else {
-					//"UPDATE User SET Coin = '" + newCoin.ToString() + "' WHERE UserName = '" + userName + "'";
-					SqlClientHelper.ExecuteNoQuery (conn, "UPDATE [User] SET [LoginTime] = (datetime('now','localtime')) WHERE [UserName] = '" + userName + "'");
-					return true;
+					Dictionary<string, string> dic = (Dictionary<string, string>)list [0];
+					string sqlName = "";
+					string sqlPwd = "";
+					dic.TryGetValue ("0", out sqlName);
+					dic.TryGetValue ("1", out sqlPwd);
+					if (!sqlName.Equals (userName) || !sqlPwd.Equals (pwd)) {
+						success = false;
+					} else {
+						sql = "UPDATE [User] SET [LoginTime] = (datetime('now','localtime')) WHERE [UserName] = '" + userName + "'";
+						SqlClientHelper.ExecuteNoQuery (conn, sql);
+						success = true;
+					}
 				}
 			}
+
+			return success;
 		}
 
 		/// <summary>
@@ -116,11 +122,12 @@ namespace Sky.Account
 		/// </summary>
 		public static string List()
 		{
-			SqlConnection conn = SqlClientHelper.CurrentConn ();
+			string reslut = "";
+			SqlConnection conn = SqlClientHelper.CreateConn ();
 			ArrayList list = SqlClientHelper.ExecuteReader (conn, "SELECT * FROM [User]");
 
 			if (list == null || list.Count == 0) {
-				return null;
+				reslut = null;
 			} else {
 				StringBuilder sb = new StringBuilder ();
 				foreach (Dictionary<string, string> dic in list) {
@@ -131,8 +138,15 @@ namespace Sky.Account
 					}
 					sb.Append ("<br>");
 				}
-				return sb.ToString ();
+				reslut = sb.ToString ();
 			}
+
+			if (conn.State == System.Data.ConnectionState.Open) {
+				conn.Close ();
+			}
+			conn.Dispose ();
+
+			return reslut;
 		}
 
 		/// <summary>
@@ -145,6 +159,10 @@ namespace Sky.Account
 			SqlConnection conn = SqlClientHelper.CurrentConn ();
 			string sql = "SELECT [UserName], [Coin] FROM [User] WHERE [UserID] = " + userID;
 			ArrayList list = SqlClientHelper.ExecuteReader (conn, sql);
+			if (conn.State == System.Data.ConnectionState.Open) {
+				conn.Close ();
+			}
+			conn.Dispose ();
 
 			if (list == null || list.Count != 1) {
 				return null;

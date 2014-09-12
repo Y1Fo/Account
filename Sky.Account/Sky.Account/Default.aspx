@@ -13,8 +13,8 @@
         <asp:Button ID="btnLogin" runat="server" Text="Login" OnClick="btnLogin_Click"/>
         <asp:Button ID="btnRegister" runat="server" Text="Register" OnClick="btnRegister_Click"/>
         <asp:Button ID="btnList" runat="server" Text="List" OnClick="btnList_Click"/>
-        <asp:Button ID="btnAddCoin" runat="server" Text="AddCoin" OnClick="btnAddCoin_Click"/>
-        <asp:Button ID="btnReduceCoin" runat="server" Text="ReduceCoin" OnClick="btnReduceCoin_Click"/>
+        <!---<asp:Button ID="btnAddCoin" runat="server" Text="AddCoin" OnClick="btnAddCoin_Click"/>
+        <asp:Button ID="btnReduceCoin" runat="server" Text="ReduceCoin" OnClick="btnReduceCoin_Click"/>-->
 	</form>
 </body>
 </html>

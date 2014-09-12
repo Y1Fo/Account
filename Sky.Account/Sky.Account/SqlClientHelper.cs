@@ -10,7 +10,8 @@ namespace Sky.Account
 {
 	public class SqlClientHelper
 	{
-		//public static SqlConnection conn;
+		public static string connectString = "server=mssql.sql52.eznowdata.com;user id=sq_audiobook;pwd=sq222222;database=sq_audiobook;MultipleActiveResultSets=true;";
+		public static SqlConnection conn = new SqlConnection ();
 
 		public SqlClientHelper ()
 		{
@@ -21,20 +22,14 @@ namespace Sky.Account
 			try 
 			{
 				//连接数据库
-				SqlConnection conn = null;
-				using (conn = new SqlConnection ())
+				if (conn.State != System.Data.ConnectionState.Open)
 				{
-					conn.ConnectionString = "server=mssql.sql52.eznowdata.com;user id=sq_audiobook;pwd=sq222222;database=sq_audiobook;MultipleActiveResultSets=true;";
+					conn.Close();
+					conn.ConnectionString = connectString;
 					conn.Open();
-					if (conn.State != System.Data.ConnectionState.Open)
-					{
-						conn.Close();
-						conn.ConnectionString = "server=mssql.sql52.eznowdata.com;user id=sq_audiobook;pwd=sq222222;database=sq_audiobook;MultipleActiveResultSets=true";
-						conn.Open();
-					}
-
-					return conn;
 				}
+
+				return conn;
 			} 
 			catch (Exception exp)
 			{
@@ -61,15 +56,24 @@ namespace Sky.Account
 			try 
 			{
 				//连接数据库
-				SqlConnection conn = new SqlConnection ();
-				conn.ConnectionString = "server=mssql.sql52.eznowdata.com;user id=sq_audiobook;pwd=sq222222;database=sq_audiobook";
-				conn.Open();
-				return conn;
+				SqlConnection sqlConn = new SqlConnection ("server=mssql.sql52.eznowdata.com;user id=sq_audiobook;pwd=sq222222;database=sq_audiobook");
+				return sqlConn;
 			} 
 			catch (Exception exp)
 			{
 				HttpContext.Current.Response.Write ("===CONN CREATE ERR===\r\n{0}" + exp.ToString ());
 				return null;
+			}
+		}
+
+		/// <summary>
+		/// 开启数据库连接
+		/// </summary>
+		/// <param name="conn">Conn.</param>
+		public static void Open(SqlConnection conn)
+		{
+			if (conn.State == System.Data.ConnectionState.Closed) {
+				conn.Open ();
 			}
 		}
 
@@ -104,6 +108,9 @@ namespace Sky.Account
 					list.Add(dic);
 				}
 
+				cmd.Dispose();
+				reader.Close();
+
 				if (list.Count > 0) {
 					return list;
 				}
@@ -112,7 +119,7 @@ namespace Sky.Account
 			}
 			catch (Exception exp) 
 			{
-				HttpContext.Current.Response.Write ("===SQL EXECUTE ERR===\r\n{0}" + exp.ToString ());
+				HttpContext.Current.Response.Write ("===SQL EXECUTE READER ERR===\r\n{0}" + exp.ToString ());
 				return null;
 			}
 		}
@@ -130,11 +137,13 @@ namespace Sky.Account
 				SqlCommand cmd = new SqlCommand ();
 				cmd.CommandText = sql;
 				cmd.Connection = conn;
-				return cmd.ExecuteNonQuery ();
+				int exe = cmd.ExecuteNonQuery ();
+				cmd.Dispose();
+				return exe;
 			}
 			catch (Exception exp) 
 			{
-				HttpContext.Current.Response.Write ("===SQL EXECUTE ERR===\r\n{0}" + exp.ToString ());
+				HttpContext.Current.Response.Write ("===SQL EXECUTE NOQUERY ERR===\r\n{0}" + exp.ToString ());
 				return -1;
 			}
 		}
